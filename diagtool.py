@@ -8,7 +8,9 @@ from requests import get
 import speedtest
 import sys
 from halo import halo
-
+import psutil
+from reportlab.pdfgen import canvas
+import datetime
 
 ops = platform.system()
 username = getpass.getuser()
@@ -23,7 +25,7 @@ if ops == 'Linux':
 
     while True:
         os.system('clear')
-        print('1- diagnostic du réseau\n2- diagnostic du système')
+        print('1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
         print('9- Quiter')   
 
         try:
@@ -106,8 +108,111 @@ if ops == 'Linux':
                     except ValueError:
                         print('veuillez saisir un numéro')
                         input('OK?')  
-            elif option ==2:
-                print('you chose 2')
+            elif option == 2:
+                while True:
+                    os.system('clear')
+                    print('1- utilisation de la CPU')
+                    print('2- utilisation du RAM')
+                    print('3- détails du disque')
+                    print('4- Task Manager (vue générale )')
+                    print('0- retour')
+
+                      
+                    sysch = int(input())
+                    match sysch:
+                        case 1:
+                            print('////////////////////////////////')
+                            for _ in range(10):
+                                cpu = psutil.cpu_percent(interval=0.2)
+                                print(f"CPU : {cpu}%")
+                            input('\n"entrer" pour continue...')
+                        case 2:
+                            print('////////////////////////////////')
+                            ram_usage = psutil.virtual_memory().percent
+                            print(f"RAM : {ram_usage}%")
+                            input('\n"entrer" pour continue...')
+                        case 4:
+                            print('F10 pour quitter...')
+                            time.sleep(1.5)
+                            os.system('htop')
+                        case 3:
+                            os.system('df -h')
+                            input('\n"entrer" pour continue...')
+                        case 0:
+                            break
+            elif option == 3:
+                def get_cpu_utilis():
+                    cpu_utilis = psutil.cpu_percent(interval=0.5)
+                    return cpu_utilis
+
+                def get_ram_utilis():
+                    ram = psutil.virtual_memory()
+                    ram_utilis = ram.percent
+                    return ram_utilis
+
+                def get_disk_utilis():
+                    df_output = subprocess.run(['df', '-h'], capture_output=True, text=True)
+                    disk_utilis = df_output.stdout
+                    return disk_utilis
+
+                def check_firewall_status():
+                    firewall_status = subprocess.run(['ufw', 'status'], capture_output=True, text=True)
+                    return firewall_status.stdout
+
+                def get_mac():
+                    output = subprocess.check_output(["ifconfig"])
+                    output = output.decode() 
+                    pattern = r"ether\s([0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){5})"
+                    mac = re.findall(pattern, output)
+                    return mac
+
+
+                def rapport_pdf(cpu_utilis, ram_utilis, disk_utilis, firewall_status, user, ipv4, mac):
+                    x = datetime.datetime.now()
+                    format_date = x.strftime("%Y-%m-%d_%H:%M")
+                    rapport_name = f'rapport_{format_date}_{user}.pdf'
+                    c = canvas.Canvas(rapport_name)
+                    c.setFont('Courier', 16)
+                    c.drawString(50, 800, 'Rapport de   :')
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 775, f'Utilisateur : {user}')
+                    c.drawString(255, 775, f'Machine : {machine}')
+                    c.drawString(50, 750, f'à : {date}')
+                    c.drawString(50, 740, '------------------------------------------------------------------')
+
+                    c.drawString(50, 715, f'IPV4 Local : {ipv4}')
+                    c.drawString(50, 690, f'Adresse MAC : {mac}')
+                    c.drawString(50, 665, 'Firewall Status:')
+                    c.setFont('Courier', 10)
+                    c.drawString(50, 645, firewall_status)
+
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 615, f'CPU utilis: {cpu_utilis}%')
+                    c.drawString(50, 590, f'RAM utilis: {ram_utilis}%')
+                    c.drawString(50, 565, 'Disk utilis:')
+                    c.setFont('Courier', 10)
+                    disk_utilis_lines = disk_utilis.split('\n')
+                    y = 540
+                    for line in disk_utilis_lines:
+                        c.drawString(50, y, line)
+                        y -= 15
+                    c.save()
+                    print(f'rapport généré: {rapport_name}')
+                    input('\n"entrer" pour continue...')
+
+                cpu_utilis = get_cpu_utilis()
+                ram_utilis = get_ram_utilis()
+                disk_utilis = get_disk_utilis()
+                firewall_status = check_firewall_status()
+                user = os.popen('whoami').read().strip()
+                machine = os.popen('hostname').read().strip()
+                date = os.popen('date').read().strip()
+                ipv4 = os.popen('hostname -I').read().strip()
+                mac = get_mac()
+
+
+                rapport_pdf(cpu_utilis, ram_utilis, disk_utilis, firewall_status, user, ipv4, mac)
+
             elif option ==9:
                 print('Bye...')
                 time.sleep(1)
@@ -133,7 +238,7 @@ elif ops == 'Windows':
 
     while True:
         os.system('cls')
-        print('1- diagnostic du réseau\n2- diagnostic du système')
+        print('1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
         print('9- Quiter')   
 
         try:
@@ -207,7 +312,128 @@ elif ops == 'Windows':
                         print('veuillez saisir un numéro')
                         input('OK?')  
             elif option ==2:
-                print('you chose 2')
+                while True:
+                    os.system('cls')
+                    print('1- utilisation de la CPU')
+                    print('2- utilisation du RAM')
+                    print('3- détails du disque')
+                    print('0- retour')
+
+                    sysch = int(input())
+                    match sysch:
+                        case 1:
+                            print('////////////////////////////////')
+                            for _ in range(10):
+                                cpu = psutil.cpu_percent(interval=0.2)
+                                print(f"CPU : {cpu}%")
+                            input('\n"entrer" pour continue...')
+                        
+                        case 2:
+                            print('////////////////////////////////')
+                            ram_usage = psutil.virtual_memory().percent
+                            print(f"RAM : {ram_usage}%")
+                            input('\n"entrer" pour continue...')
+                        case 3:
+                            print('////////////////////////////////')
+                            os.system('wmic logicaldisk get caption')
+                            drive = input('Enter your drive letter: ')
+
+                            disk_usage = psutil.disk_usage(drive + ':/') 
+
+                            print(f"Total: {disk_usage.total / (1024 ** 3):.2f} GB")
+                            print(f"Utilsé: {disk_usage.used / (1024 ** 3):.2f} GB")
+                            print(f"Libre: {disk_usage.free / (1024 ** 3):.2f} GB")
+                            print(f"Pousentage: {disk_usage.percent}%")
+                            input('\n"entrer" pour continue...')
+                        case 0:
+                            break
+
+
+            elif option == 3:
+                def get_cpu_utilis():
+                    cpu_utilis = psutil.cpu_percent(interval=0.5)
+                    return cpu_utilis
+
+                def get_ram_utilis():
+                    ram = psutil.virtual_memory()
+                    ram_utilis = ram.percent
+                    return ram_utilis
+
+                def get_disk_usage():
+                    drive = psutil.disk_partitions()[0].device.split(':')[0]
+                    disk_usage = psutil.disk_usage(drive + ':/')
+                    total = disk_usage.total / (1024 ** 3)
+                    utilisé = disk_usage.used / (1024 ** 3)
+                    libre = disk_usage.free / (1024 ** 3)
+                    pourcentage = disk_usage.percent
+
+                    return f"Lecteur : {drive}\nTotal: {total:.2f} GB\nUtilisé: {utilisé:.2f} GB\nLibre: {libre:.2f} GB\nPourcentage: {pourcentage}%"
+
+
+                def check_firewall_status():
+                    firewall_output = subprocess.run(['netsh', 'advfirewall', 'show', 'currentprofile'], capture_output=True, text=True)
+                    firewall_status = firewall_output.stdout
+                    return firewall_status
+
+                def get_ipv4():
+                    ipconfig_output = subprocess.check_output(['ipconfig'], text=True)
+                    lines = ipconfig_output.split('\n')
+                    for line in lines:
+                        if 'IPv4 Address' in line:
+                            ipv4_address = line.split(':')[-1].strip()
+                            return ipv4_address
+                    return None
+
+
+                def rapport_pdf(cpu_utilis, ram_utilis, disk_utilis, user, ipv4, ipp, firewall_status):
+                    x = datetime.datetime.now()
+                    format_date = x.strftime("%Y-%m-%d_%H-%M")
+                    rapport_name = (f'rapport_{format_date}.pdf')
+                    c = canvas.Canvas(rapport_name)
+                    c.setFont('Courier', 16)
+                    c.drawString(50, 800, 'Rapport de   :')
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 775, f'Utilisateur : {user}')
+
+                    c.drawString(50, 750, f'à : {date}')
+                    c.setFont('Courier', 10)
+                    c.drawString(50, 740, '------------------------------------------------------------------')
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 715, f'IPV4 Local : {ipv4}')
+                    c.drawString(50, 690, f'Adresse IP Publique : {ipp}')
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 665, f'utilisation CPU: {cpu_utilis}%')
+                    c.drawString(50, 640, f'utilisation RAM: {ram_utilis}%')
+                    c.drawString(50, 615, 'Détails du disque :')
+                    c.setFont('Courier', 10)
+                    disk_utilis_lines = disk_utilis.split('\n')
+                    y = 590
+                    for line in disk_utilis_lines:
+                        c.drawString(60, y, line)
+                        y -= 15
+                    c.setFont('Courier', 14)
+                    c.drawString(50, 450, 'firewall status')
+                    c.setFont('Courier', 10)
+                    firewall_status_lines = firewall_status.split('\n')
+                    y = 430
+                    for line in firewall_status_lines:
+                        c.drawString(50, y, line)
+                        y -= 15
+                    c.save()
+                    print(f'rapport généré : {rapport_name}')
+
+                cpu_utilis = get_cpu_utilis()
+                ram_utilis = get_ram_utilis()
+                disk_details = get_disk_usage()
+                firewall_status = check_firewall_status()
+                user = os.popen('whoami').read().strip()
+                date = os.popen('date /T').read().strip()
+                ipv4 = get_ipv4()
+                ipp = os.popen('curl ifconfig.me').read().strip()
+
+
+                rapport_pdf(cpu_utilis, ram_utilis, disk_details, user, ipv4, ipp, firewall_status)
+                input('\n"entrer" pour continue...')           
             elif option ==9:
                 print('Bye...')
                 time.sleep(1)
@@ -223,4 +449,4 @@ elif ops == 'Windows':
             input('OK?')  
 
 else :
-    print('sorry',username, 'we do not support ', ops)
+    print('Désolé,',username, ' nous ne prenons pas en charge ', ops)
