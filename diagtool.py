@@ -1,3 +1,6 @@
+#Vous devez utiliser python (3.10) ou une version plus récente
+#car le code est construit avec L'instruction match / case (Python 3.10)
+#ce script est compatible avec les systèmes d'exploitation linux et windows
 import platform
 import getpass
 import time
@@ -11,6 +14,7 @@ from halo import halo
 import psutil
 from reportlab.pdfgen import canvas
 import datetime
+import colorama
 
 ops = platform.system()
 username = getpass.getuser()
@@ -25,9 +29,8 @@ if ops == 'Linux':
 
     while True:
         os.system('clear')
-        print('1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
-        print('9- Quiter')   
-
+        print(colorama.Fore.GREEN +'1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
+        print(colorama.Fore.RED + '9- Quiter')   
         try:
             option = int(input())
             if option == 1:
@@ -238,8 +241,8 @@ elif ops == 'Windows':
 
     while True:
         os.system('cls')
-        print('1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
-        print('9- Quiter')   
+        print(colorama.Fore.GREEN +'1- diagnostic du réseau\n2- diagnostic du système\n3- créer un rapport PDF sur l\'état de votre machine')
+        print(colorama.Fore.RED +'9- Quiter')   
 
         try:
             option = int(input())
